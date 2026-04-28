@@ -7,6 +7,8 @@ import RevenueChart from '@/components/RevenueChart'
 import UserGrowthChart from '@/components/UserGrowthChart'
 import CategoryChart from '@/components/CategoryChart'
 import PerformanceChart from '@/components/PerformanceChart'
+import LLMBubbleChart from '@/components/LLMBubbleChart'
+import APIUsageChart from '@/components/APIUsageChart'
 import StatsCard from '@/components/StatsCard'
 
 export default function Dashboard() {
@@ -98,9 +100,27 @@ export default function Dashboard() {
         <UserGrowthChart />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <CategoryChart />
         <PerformanceChart />
+      </div>
+
+      {/* AI/ML Analytics Section */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold gradient-text mb-2">
+          AI & Machine Learning Analytics
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Real-time insights into LLM model usage and API performance
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        <LLMBubbleChart />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <APIUsageChart />
       </div>
 
       {/* Footer */}
