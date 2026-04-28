@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, Clock } from 'lucide-react'
+import AnimatedNumber from './AnimatedNumber'
 
 interface StockData {
   symbol: string
@@ -24,12 +25,12 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [, setTick] = useState(0) // Force re-render for time updates
 
   useEffect(() => {
     async function fetchStockData() {
       try {
-        setLoading(true)
-        
         // Try Finnhub API first (supports CORS, free tier available)
         // Get free API key from: https://finnhub.io/register
         const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
@@ -65,6 +66,7 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
             currency: 'USD',
             isLive: true,
           })
+          setLastUpdated(new Date())
           setError(null)
           return // Success, exit function
         }
@@ -102,17 +104,25 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
           currency: 'USD',
           isLive: false,
         })
+        setLastUpdated(new Date())
         setError(null) // Don't show error, use fallback data
-      } finally {
-        setLoading(false)
       }
+      
+      setLoading(false)
     }
 
     fetchStockData()
     
     // Refresh every 15 seconds for real-time updates
     const interval = setInterval(fetchStockData, 15 * 1000)
-    return () => clearInterval(interval)
+    
+    // Update "time ago" display every second
+    const tickInterval = setInterval(() => setTick(t => t + 1), 1000)
+    
+    return () => {
+      clearInterval(interval)
+      clearInterval(tickInterval)
+    }
   }, [symbol, name])
 
   if (loading) {
@@ -150,6 +160,14 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
     ? 'from-emerald-500 to-teal-500'
     : 'from-red-500 to-rose-500'
 
+  const getTimeAgo = () => {
+    const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000)
+    if (seconds < 15) return 'Just now'
+    if (seconds < 60) return `${seconds}s ago`
+    const minutes = Math.floor(seconds / 60)
+    return `${minutes}m ago`
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -173,7 +191,12 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
             {stockData.name}
           </p>
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-            ${stockData.price.toFixed(2)} {stockData.currency}
+            <AnimatedNumber 
+              value={stockData.price} 
+              decimals={2} 
+              prefix="$" 
+              suffix={` ${stockData.currency}`}
+            />
           </h3>
         </div>
         <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClass}`}>
@@ -184,16 +207,29 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between flex-wrap">
         <span
           className={`text-sm font-semibold ${
             isPositive ? 'text-emerald-600' : 'text-red-600'
           }`}
         >
-          {isPositive ? '+' : ''}
-          {stockData.change.toFixed(2)} ({stockData.changePercent.toFixed(2)}%)
+          <AnimatedNumber 
+            value={stockData.change} 
+            decimals={2} 
+            prefix={isPositive ? '+' : ''}
+          />
+          {' '}
+          (<AnimatedNumber 
+            value={stockData.changePercent} 
+            decimals={2} 
+            suffix="%"
+          />)
         </span>
         <span className="text-xs text-slate-500">today</span>
+      </div>
+      <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
+        <Clock className="w-3 h-3" />
+        <span>{getTimeAgo()}</span>
       </div>
     </motion.div>
   )

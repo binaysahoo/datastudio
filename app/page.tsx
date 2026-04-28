@@ -66,7 +66,7 @@ export default function Dashboard() {
           Semiconductor & Tech Stocks
         </h2>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          🔴 Live real-time stock prices • Updates every 15 seconds • Powered by Finnhub
+          🔴 Live real-time stock prices  Updates every 15 seconds • Powered by Finnhub
         </p>
       </div>
 
