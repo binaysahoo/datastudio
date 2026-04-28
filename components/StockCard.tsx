@@ -68,6 +68,7 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
           })
           setLastUpdated(new Date())
           setError(null)
+          setLoading(false)
           return // Success, exit function
         }
         
