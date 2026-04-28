@@ -25,7 +25,7 @@ export default function Dashboard() {
       title: 'Total Revenue',
       value: '$124,593',
       change: '+12.5%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: DollarSign,
       color: 'from-emerald-500 to-teal-500',
     },
@@ -33,7 +33,7 @@ export default function Dashboard() {
       title: 'Active Users',
       value: '48,256',
       change: '+18.2%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: Users,
       color: 'from-blue-500 to-cyan-500',
     },
@@ -41,7 +41,7 @@ export default function Dashboard() {
       title: 'Conversion Rate',
       value: '3.42%',
       change: '+2.4%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: TrendingUp,
       color: 'from-violet-500 to-purple-500',
     },
@@ -49,7 +49,7 @@ export default function Dashboard() {
       title: 'Performance Score',
       value: '94.2',
       change: '+5.1%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: Activity,
       color: 'from-orange-500 to-red-500',
     },
@@ -69,7 +69,7 @@ export default function Dashboard() {
               DataStudioz Analytics
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
-              Welcome back! Here's what's happening with your data today.
+              Welcome back! Here&apos;s what&apos;s happening with your data today.
             </p>
           </div>
           <button
