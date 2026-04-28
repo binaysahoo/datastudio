@@ -10,6 +10,7 @@ import PerformanceChart from '@/components/PerformanceChart'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
+import MyPerks from '@/components/MyPerks'
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false)
@@ -95,6 +96,20 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <WeatherBangalore />
         <WeatherOdisha />
+      </div>
+
+      {/* Tools & Utilities Section */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold gradient-text mb-2">
+          🛠️ Tools & Utilities
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Personal finance calculators and investment simulators
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        <MyPerks />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
