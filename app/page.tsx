@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
-import RevenueChart from '@/components/RevenueChart'
-import UserGrowthChart from '@/components/UserGrowthChart'
+import WeatherBangalore from '@/components/WeatherBangalore'
+import WeatherOdisha from '@/components/WeatherOdisha'
 import CategoryChart from '@/components/CategoryChart'
 import PerformanceChart from '@/components/PerformanceChart'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
@@ -66,7 +66,7 @@ export default function Dashboard() {
           Semiconductor & Tech Stocks
         </h2>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          🔴 Live real-time stock prices  Updates every 15 seconds • Powered by Finnhub
+          🔴 Live real-time stock prices with smooth rolling animations • Updates every 15 seconds • Powered by Finnhub
         </p>
       </div>
 
@@ -82,10 +82,19 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts Grid */}
+      {/* Weather Section */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold gradient-text mb-2">
+          🌦️ Live Weather Updates
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Real-time weather data with 7-day forecasts • Powered by Open-Meteo
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <RevenueChart />
-        <UserGrowthChart />
+        <WeatherBangalore />
+        <WeatherOdisha />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
