@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Moon, Sun, TrendingUp, Users, DollarSign, Activity } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import RevenueChart from '@/components/RevenueChart'
 import UserGrowthChart from '@/components/UserGrowthChart'
 import CategoryChart from '@/components/CategoryChart'
 import PerformanceChart from '@/components/PerformanceChart'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
-import StatsCard from '@/components/StatsCard'
+import StockCard from '@/components/StockCard'
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false)
@@ -22,39 +22,12 @@ export default function Dashboard() {
     }
   }, [darkMode])
 
-  const stats = [
-    {
-      title: 'Total Revenue',
-      value: '$124,593',
-      change: '+12.5%',
-      trend: 'up' as const,
-      icon: DollarSign,
-      color: 'from-emerald-500 to-teal-500',
-    },
-    {
-      title: 'Active Users',
-      value: '48,256',
-      change: '+18.2%',
-      trend: 'up' as const,
-      icon: Users,
-      color: 'from-blue-500 to-cyan-500',
-    },
-    {
-      title: 'Conversion Rate',
-      value: '3.42%',
-      change: '+2.4%',
-      trend: 'up' as const,
-      icon: TrendingUp,
-      color: 'from-violet-500 to-purple-500',
-    },
-    {
-      title: 'Performance Score',
-      value: '94.2',
-      change: '+5.1%',
-      trend: 'up' as const,
-      icon: Activity,
-      color: 'from-orange-500 to-red-500',
-    },
+  const stocks = [
+    { symbol: 'SNPS', name: 'Synopsys' },
+    { symbol: 'CDNS', name: 'Cadence Design' },
+    { symbol: 'QCOM', name: 'Qualcomm' },
+    { symbol: 'NVDA', name: 'NVIDIA' },
+    { symbol: 'AVGO', name: 'Broadcom' },
   ]
 
   return (
@@ -87,10 +60,25 @@ export default function Dashboard() {
         </div>
       </motion.header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <StatsCard key={index} {...stat} index={index} />
+      {/* Stock Prices Section */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold gradient-text mb-2">
+          Semiconductor & Tech Stocks
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          🔴 Live real-time stock prices • Updates every 15 seconds • Powered by Finnhub
+        </p>
+      </div>
+
+      {/* Stock Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        {stocks.map((stock, index) => (
+          <StockCard
+            key={stock.symbol}
+            symbol={stock.symbol}
+            name={stock.name}
+            index={index}
+          />
         ))}
       </div>
 

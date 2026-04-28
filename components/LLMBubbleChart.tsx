@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   ScatterChart,
@@ -14,89 +15,16 @@ import {
   Cell,
 } from 'recharts'
 
-// LLM Models data with usage statistics
-const llmData = [
-  {
-    name: 'GPT-4',
-    users: 15000000,
-    performance: 95,
-    tokens: 32000,
-    color: '#10b981',
-    company: 'OpenAI',
-  },
-  {
-    name: 'Claude 3 Opus',
-    users: 8500000,
-    performance: 94,
-    tokens: 200000,
-    color: '#3b82f6',
-    company: 'Anthropic',
-  },
-  {
-    name: 'GPT-3.5',
-    users: 25000000,
-    performance: 82,
-    tokens: 16000,
-    color: '#22c55e',
-    company: 'OpenAI',
-  },
-  {
-    name: 'Gemini Pro',
-    users: 12000000,
-    performance: 91,
-    tokens: 32000,
-    color: '#8b5cf6',
-    company: 'Google',
-  },
-  {
-    name: 'Claude 3 Sonnet',
-    users: 10000000,
-    performance: 92,
-    tokens: 200000,
-    color: '#06b6d4',
-    company: 'Anthropic',
-  },
-  {
-    name: 'Llama 3',
-    users: 6000000,
-    performance: 88,
-    tokens: 8000,
-    color: '#f59e0b',
-    company: 'Meta',
-  },
-  {
-    name: 'Mistral Large',
-    users: 3500000,
-    performance: 87,
-    tokens: 32000,
-    color: '#ec4899',
-    company: 'Mistral AI',
-  },
-  {
-    name: 'Claude 3 Haiku',
-    users: 7000000,
-    performance: 85,
-    tokens: 200000,
-    color: '#14b8a6',
-    company: 'Anthropic',
-  },
-  {
-    name: 'Gemini Ultra',
-    users: 5000000,
-    performance: 96,
-    tokens: 32000,
-    color: '#a855f7',
-    company: 'Google',
-  },
-  {
-    name: 'Command R+',
-    users: 2000000,
-    performance: 84,
-    tokens: 128000,
-    color: '#f97316',
-    company: 'Cohere',
-  },
-]
+interface LLMModel {
+  name: string
+  users: number
+  performance: number
+  tokens: number
+  color: string
+  company: string
+  likes?: number
+  modelId?: string
+}
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
@@ -110,8 +38,13 @@ const CustomTooltip = ({ active, payload }: any) => {
           Company: <span className="font-semibold">{data.company}</span>
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Users: <span className="font-semibold">{(data.users / 1000000).toFixed(1)}M</span>
+          Downloads: <span className="font-semibold">{data.users.toLocaleString()}</span>
         </p>
+        {data.likes && (
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Likes: <span className="font-semibold">{data.likes.toLocaleString()}</span>
+          </p>
+        )}
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Performance: <span className="font-semibold">{data.performance}/100</span>
         </p>
@@ -125,6 +58,132 @@ const CustomTooltip = ({ active, payload }: any) => {
 }
 
 export default function LLMBubbleChart() {
+  const [llmData, setLlmData] = useState<LLMModel[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<string>('')
+
+  useEffect(() => {
+    async function fetchLLMStats() {
+      try {
+        setLoading(true)
+        
+        // Popular LLM models to track from HuggingFace
+        const modelsToTrack = [
+          'meta-llama/Meta-Llama-3-8B',
+          'meta-llama/Meta-Llama-3-70B',
+          'mistralai/Mistral-7B-v0.1',
+          'mistralai/Mixtral-8x7B-v0.1',
+          'google/gemma-7b',
+          'google/gemma-2b',
+          'tiiuae/falcon-7b',
+          'microsoft/phi-2',
+        ]
+
+        const colors = [
+          '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', 
+          '#ec4899', '#06b6d4', '#14b8a6', '#f97316',
+        ]
+
+        // Fetch data from HuggingFace API
+        const modelPromises = modelsToTrack.map(async (modelId, index) => {
+          try {
+            const response = await fetch(`https://huggingface.co/api/models/${modelId}`)
+            if (!response.ok) return null
+            
+            const data = await response.json()
+            const name = modelId.split('/')[1] || modelId
+            const company = modelId.split('/')[0] || 'Unknown'
+            const downloads = data.downloads || 0
+            const likes = data.likes || 0
+            
+            // Calculate performance score based on likes (normalized to 80-98)
+            const performanceScore = Math.min(98, 80 + (likes / 1000))
+            
+            // Estimate token context
+            const tokens = name.includes('70B') || name.includes('40B') ? 32000 :
+                           name.includes('8B') || name.includes('7B') ? 8000 :
+                           name.includes('2B') ? 4000 : 16000
+
+            return {
+              name,
+              users: downloads,
+              performance: parseFloat(performanceScore.toFixed(1)),
+              tokens,
+              color: colors[index % colors.length],
+              company,
+              likes,
+              modelId,
+            }
+          } catch (error) {
+            console.error(`Error fetching ${modelId}:`, error)
+            return null
+          }
+        })
+
+        const modelsData = await Promise.all(modelPromises)
+        const validModels = modelsData.filter((model) => model !== null) as LLMModel[]
+        
+        // Sort by downloads
+        validModels.sort((a, b) => b.users - a.users)
+
+        setLlmData(validModels)
+        setLastUpdated(new Date().toLocaleString())
+        setError(null)
+      } catch (err) {
+        setError('Failed to fetch LLM statistics from HuggingFace')
+        console.error('Error fetching LLM stats:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLLMStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.6 }}
+        className="glass-card p-6"
+      >
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            LLM Models Comparison
+          </h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Loading real-time data from HuggingFace...
+          </p>
+        </div>
+        <div className="h-[400px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </motion.div>
+    )
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.6 }}
+        className="glass-card p-6"
+      >
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            LLM Models Comparison
+          </h3>
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -137,7 +196,10 @@ export default function LLMBubbleChart() {
           LLM Models Comparison
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Bubble size = Context window • X-axis = Performance • Y-axis = User base
+          Bubble size = Context window • X-axis = Performance • Y-axis = Downloads
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+          🔴 Live data from HuggingFace API • Last updated: {lastUpdated}
         </p>
       </div>
       <ResponsiveContainer width="100%" height={400}>
@@ -167,13 +229,16 @@ export default function LLMBubbleChart() {
           <YAxis
             type="number"
             dataKey="users"
-            name="Users"
-            domain={[0, 30000000]}
+            name="Downloads"
             stroke="#64748b"
             style={{ fontSize: '12px' }}
-            tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
+            tickFormatter={(value) => {
+              if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
+              if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
+              return value.toString()
+            }}
             label={{
-              value: 'Active Users',
+              value: 'Downloads',
               angle: -90,
               position: 'insideLeft',
               style: { fill: '#64748b' },
