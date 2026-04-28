@@ -16,7 +16,7 @@ git push origin main
 ```
 
 ### Step 2: Enable GitHub Pages
-1. Go to your repository: https://github.com/binaysahoo/helloML
+1. Go to your repository: https://github.com/binaysahoo/datastudio
 2. Click **Settings** (top right)
 3. Click **Pages** (left sidebar)
 4. Under **Source**, select:
@@ -26,7 +26,7 @@ git push origin main
 
 ### Step 3: Access Your Website
 After 1-2 minutes, your site will be live at:
-**https://binaysahoo.github.io/helloML/**
+**https://binaysahoo.github.io/datastudio/**
 
 ## ✨ Features Included
 - ✅ Responsive design (mobile-friendly)
