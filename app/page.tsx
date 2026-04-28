@@ -5,8 +5,6 @@ import { motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import WeatherBangalore from '@/components/WeatherBangalore'
 import WeatherOdisha from '@/components/WeatherOdisha'
-import CategoryChart from '@/components/CategoryChart'
-import PerformanceChart from '@/components/PerformanceChart'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
@@ -110,11 +108,6 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 gap-6 mb-8">
         <MyPerks />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <CategoryChart />
-        <PerformanceChart />
       </div>
 
       {/* AI/ML Analytics Section */}
