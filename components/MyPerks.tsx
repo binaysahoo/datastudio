@@ -20,6 +20,37 @@ interface PerkData {
   inrGain: number
 }
 
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload as PerkData
+    const isGain = data.usdGain >= 0
+    
+    return (
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
+        <p className="font-semibold text-slate-900 dark:text-white mb-2">
+          Share Price: ${data.sharePrice}
+        </p>
+        <div className="space-y-1 text-sm">
+          <p className="text-slate-700 dark:text-slate-300">
+            <span className="font-medium">Shares:</span> {data.rsu}
+          </p>
+          <p className={`${data.extraShares >= 0 ? 'text-emerald-600' : 'text-red-600'} font-medium`}>
+            <span className="text-slate-700 dark:text-slate-300 font-normal">Extra Shares:</span> {data.extraShares >= 0 ? '+' : ''}{data.extraShares}
+          </p>
+          <p className={`${isGain ? 'text-emerald-600' : 'text-red-600'} font-medium`}>
+            <span className="text-slate-700 dark:text-slate-300 font-normal">USD Gain:</span> {isGain ? '+' : ''}${data.usdGain.toLocaleString()}
+          </p>
+          <p className={`${isGain ? 'text-emerald-600' : 'text-red-600'} font-medium`}>
+            <span className="text-slate-700 dark:text-slate-300 font-normal">INR Gain:</span> {isGain ? '+' : ''}₹{data.inrGain.toLocaleString()}
+          </p>
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
 function generateData(): PerkData[] {
   const data: PerkData[] = []
   for (let price = 400; price <= 650; price += 1) {
@@ -82,7 +113,7 @@ export default function MyPerks() {
     >
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          💎 MyPerks - SNPS Share Calculator
+          💎 SNPS Share Calculator
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Simulate SNPS share gains/losses from $400 to $650
@@ -173,14 +204,7 @@ export default function MyPerks() {
                 fontSize={12}
                 label={{ value: 'USD Gain/Loss', angle: -90, position: 'insideLeft' }}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                  border: 'none', 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <ReferenceLine 
                 y={0} 
                 stroke="#64748b" 
@@ -191,13 +215,14 @@ export default function MyPerks() {
                 x={BASELINE_PRICE} 
                 stroke="#8b5cf6" 
                 strokeDasharray="3 3"
-                label={{ value: 'Baseline', fill: '#8b5cf6', fontSize: 12 }}
+                label={{ value: 'Baseline $475', fill: '#8b5cf6', fontSize: 12, position: 'top' }}
               />
               <ReferenceLine 
-                x={currentPrice} 
+                x={Math.round(currentPrice)} 
                 stroke="#f59e0b" 
-                strokeWidth={2}
-                label={{ value: `Live $${currentPrice.toFixed(2)}`, fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}
+                strokeWidth={3}
+                strokeDasharray="5 5"
+                label={{ value: `Live $${Math.round(currentPrice)}`, fill: '#f59e0b', fontSize: 12, fontWeight: 'bold', position: 'top' }}
               />
               <Line
                 type="monotone"
