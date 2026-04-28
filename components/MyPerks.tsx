@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, DollarSign, IndianRupee, Package } from 'lucide-react'
+import { TrendingUp, TrendingDown, IndianRupee, Package } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 // Constants
@@ -22,7 +22,7 @@ interface PerkData {
 
 function generateData(): PerkData[] {
   const data: PerkData[] = []
-  for (let price = 400; price <= 650; price += 5) {
+  for (let price = 400; price <= 650; price += 1) {
     const rsu = Math.floor(INVESTMENT_USD / price)
     const extraShares = rsu - BASELINE_RSU
     const usdGain = extraShares * TARGET_PRICE
@@ -41,17 +41,38 @@ function generateData(): PerkData[] {
 
 export default function MyPerks() {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
+  const [livePrice, setLivePrice] = useState<number>(482.35)
+  
+  useEffect(() => {
+    async function fetchSNPSPrice() {
+      try {
+        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
+        const response = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=SNPS&token=${FINNHUB_API_KEY}`
+        )
+        
+        if (response.ok) {
+          const data = await response.json()
+          if (data.c && data.c > 0) {
+            setLivePrice(data.c)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch SNPS price:', error)
+      }
+    }
+    
+    fetchSNPSPrice()
+    const interval = setInterval(fetchSNPSPrice, 15 * 1000)
+    return () => clearInterval(interval)
+  }, [])
   
   const data = generateData()
-  const currentPrice = 482.35
+  const currentPrice = livePrice
   
-  let currentData = data[16]
-  for (let i = 0; i < data.length; i++) {
-    if (Math.abs(data[i].sharePrice - currentPrice) < 3) {
-      currentData = data[i]
-      break
-    }
-  }
+  // Find exact or nearest price point
+  const roundedPrice = Math.round(currentPrice)
+  const currentData = data.find(d => d.sharePrice === roundedPrice) || data[75] // Default to 475 baseline
 
   return (
     <motion.div
@@ -64,28 +85,33 @@ export default function MyPerks() {
           💎 MyPerks - SNPS Share Calculator
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Simulate SNPS share gains/losses from $400 to $650 with ${INVESTMENT_USD.toLocaleString()} investment
+          Simulate SNPS share gains/losses from $400 to $650
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-blue-600" />
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Investment</p>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">
-            ${INVESTMENT_USD.toLocaleString()}
-          </p>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
             <Package className="w-5 h-5 text-purple-600" />
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Baseline RSU</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Baseline Shares</p>
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">
             {BASELINE_RSU} @ ${BASELINE_PRICE}
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="w-5 h-5 text-blue-600" />
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Live Shares</p>
+          </div>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">
+            {currentData.rsu} @ ${Math.round(currentPrice)}
+          </p>
+          <p className={`text-sm font-semibold mt-1 ${
+            currentData.extraShares >= 0 ? 'text-emerald-600' : 'text-red-600'
+          }`}>
+            {currentData.extraShares >= 0 ? '+' : ''}{currentData.extraShares} shares
           </p>
         </div>
 
@@ -100,7 +126,7 @@ export default function MyPerks() {
             ) : (
               <TrendingDown className="w-5 h-5 text-red-600" />
             )}
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Current USD</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">USD Gain/Loss</p>
           </div>
           <p className={`text-2xl font-bold ${
             currentData.usdGain >= 0 ? 'text-emerald-600' : 'text-red-600'
@@ -116,7 +142,7 @@ export default function MyPerks() {
         } p-4 rounded-xl`}>
           <div className="flex items-center gap-2 mb-2">
             <IndianRupee className="w-5 h-5 text-orange-600" />
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Current INR</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">INR Gain/Loss</p>
           </div>
           <p className={`text-2xl font-bold ${
             currentData.inrGain >= 0 ? 'text-emerald-600' : 'text-red-600'
@@ -139,6 +165,8 @@ export default function MyPerks() {
                 stroke="#94a3b8" 
                 fontSize={12}
                 label={{ value: 'Share Price ($)', position: 'insideBottom', offset: -5 }}
+                domain={['dataMin', 'dataMax']}
+                ticks={[400, 425, 450, 475, 500, 525, 550, 575, 600, 625, 650]}
               />
               <YAxis 
                 stroke="#94a3b8" 
@@ -165,6 +193,12 @@ export default function MyPerks() {
                 strokeDasharray="3 3"
                 label={{ value: 'Baseline', fill: '#8b5cf6', fontSize: 12 }}
               />
+              <ReferenceLine 
+                x={currentPrice} 
+                stroke="#f59e0b" 
+                strokeWidth={2}
+                label={{ value: `Live $${currentPrice.toFixed(2)}`, fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}
+              />
               <Line
                 type="monotone"
                 dataKey="usdGain"
@@ -187,7 +221,7 @@ export default function MyPerks() {
             <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 z-10">
               <tr>
                 <th className="text-left p-3 font-semibold text-slate-900 dark:text-white">Share Price</th>
-                <th className="text-right p-3 font-semibold text-slate-900 dark:text-white">RSU</th>
+                <th className="text-right p-3 font-semibold text-slate-900 dark:text-white">Shares</th>
                 <th className="text-right p-3 font-semibold text-slate-900 dark:text-white">Extra Shares</th>
                 <th className="text-right p-3 font-semibold text-slate-900 dark:text-white">USD Gain</th>
                 <th className="text-right p-3 font-semibold text-slate-900 dark:text-white">INR Gain</th>
@@ -196,6 +230,7 @@ export default function MyPerks() {
             <tbody>
               {data.map((row, idx) => {
                 const isBaseline = row.sharePrice === BASELINE_PRICE
+                const isCurrentPrice = row.sharePrice === Math.round(currentPrice)
                 const isProfit = row.usdGain > 0
                 const isLoss = row.usdGain < 0
                 
@@ -204,13 +239,14 @@ export default function MyPerks() {
                     key={row.sharePrice}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: idx * 0.01 }}
+                    transition={{ delay: idx * 0.002 }}
                     onMouseEnter={() => setHoveredRow(idx)}
                     onMouseLeave={() => setHoveredRow(null)}
                     className={`
                       border-b border-slate-200 dark:border-slate-700 transition-colors
                       ${hoveredRow === idx ? 'bg-slate-100 dark:bg-slate-800' : ''}
                       ${isBaseline ? 'bg-purple-50 dark:bg-purple-900/20' : ''}
+                      ${isCurrentPrice ? 'bg-orange-50 dark:bg-orange-900/20' : ''}
                     `}
                   >
                     <td className="p-3 font-semibold text-slate-900 dark:text-white">
@@ -218,6 +254,11 @@ export default function MyPerks() {
                       {isBaseline && (
                         <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-purple-200 dark:bg-purple-700 text-purple-800 dark:text-purple-200">
                           Baseline
+                        </span>
+                      )}
+                      {isCurrentPrice && (
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-orange-200 dark:bg-orange-700 text-orange-800 dark:text-orange-200">
+                          Live
                         </span>
                       )}
                     </td>
@@ -256,7 +297,7 @@ export default function MyPerks() {
       <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           <strong>Note:</strong> Calculations assume target price of ${TARGET_PRICE} for gain/loss computation. 
-          Exchange rate: 1 USD = ₹{USD_TO_INR}. Baseline: {BASELINE_RSU} RSU @ ${BASELINE_PRICE}.
+          Exchange rate: 1 USD = ₹{USD_TO_INR}. Baseline: {BASELINE_RSU} shares @ ${BASELINE_PRICE}. Live price: ${currentPrice.toFixed(2)}.
         </p>
       </div>
     </motion.div>
