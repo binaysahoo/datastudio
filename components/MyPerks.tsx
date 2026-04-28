@@ -10,7 +10,6 @@ const INVESTMENT_USD = 22000
 const BASELINE_RSU = 46
 const BASELINE_PRICE = 475
 const TARGET_PRICE = 650
-const USD_TO_INR = 94
 
 interface PerkData {
   sharePrice: number
@@ -51,13 +50,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-function generateData(): PerkData[] {
+function generateData(usdToInr: number): PerkData[] {
   const data: PerkData[] = []
   for (let price = 400; price <= 650; price += 1) {
     const rsu = Math.floor(INVESTMENT_USD / price)
     const extraShares = rsu - BASELINE_RSU
     const usdGain = extraShares * TARGET_PRICE
-    const inrGain = usdGain * USD_TO_INR
+    const inrGain = Math.round(usdGain * usdToInr)
     
     data.push({
       sharePrice: price,
@@ -73,6 +72,7 @@ function generateData(): PerkData[] {
 export default function MyPerks() {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
   const [livePrice, setLivePrice] = useState<number>(482.35)
+  const [usdToInr, setUsdToInr] = useState<number>(94.62)
   
   useEffect(() => {
     async function fetchSNPSPrice() {
@@ -97,8 +97,32 @@ export default function MyPerks() {
     const interval = setInterval(fetchSNPSPrice, 15 * 1000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    async function fetchUSDToINR() {
+      try {
+        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
+        const response = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=OANDA:USD_INR&token=${FINNHUB_API_KEY}`
+        )
+        
+        if (response.ok) {
+          const data = await response.json()
+          if (data.c && data.c > 0) {
+            setUsdToInr(data.c)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch USD to INR rate:', error)
+      }
+    }
+    
+    fetchUSDToINR()
+    const interval = setInterval(fetchUSDToINR, 15 * 1000)
+    return () => clearInterval(interval)
+  }, [])
   
-  const data = generateData()
+  const data = generateData(usdToInr)
   const currentPrice = livePrice
   
   // Find exact or nearest price point
@@ -179,6 +203,9 @@ export default function MyPerks() {
             currentData.inrGain >= 0 ? 'text-emerald-600' : 'text-red-600'
           }`}>
             {currentData.inrGain >= 0 ? '+' : ''}₹{currentData.inrGain.toLocaleString()}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            @ ₹{usdToInr.toFixed(2)} per USD
           </p>
         </div>
       </div>
@@ -322,7 +349,7 @@ export default function MyPerks() {
       <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           <strong>Note:</strong> Calculations assume target price of ${TARGET_PRICE} for gain/loss computation. 
-          Exchange rate: 1 USD = ₹{USD_TO_INR}. Baseline: {BASELINE_RSU} shares @ ${BASELINE_PRICE}. Live price: ${currentPrice.toFixed(2)}.
+          Exchange rate: 1 USD = ₹{usdToInr.toFixed(2)}. Baseline: {BASELINE_RSU} shares @ ${BASELINE_PRICE}. Live price: ${currentPrice.toFixed(2)}.
         </p>
       </div>
     </motion.div>
