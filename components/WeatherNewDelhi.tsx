@@ -16,6 +16,7 @@ interface WeatherData {
   }
   hourly: Array<{
     time: string
+    date: string
     temp: number
     precipitation: number
     wind: number
@@ -34,6 +35,7 @@ export default function WeatherNewDelhi() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'temp' | 'precip' | 'wind'>('temp')
+  const [selectedDay, setSelectedDay] = useState(0)
 
   useEffect(() => {
     async function fetchWeather() {
@@ -63,11 +65,12 @@ export default function WeatherNewDelhi() {
         }
         
         const hourlyData = []
-        for (let i = 0; i < 72; i += 3) {
+        for (let i = 0; i < Math.min(192, data.hourly.time.length); i += 3) {
           if (i < data.hourly.time.length) {
             const time = new Date(data.hourly.time[i])
             hourlyData.push({
               time: time.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+              date: time.toISOString().split('T')[0],
               temp: Math.round(data.hourly.temperature_2m[i]),
               precipitation: data.hourly.precipitation[i] || 0,
               wind: Math.round(data.hourly.wind_speed_10m[i]),
@@ -140,7 +143,13 @@ export default function WeatherNewDelhi() {
 
   if (!weather) return null
 
-  const chartData = weather.hourly.map(h => ({
+  // Filter hourly data by selected day
+  const selectedDate = weather.daily[selectedDay]?.date
+  const filteredHourlyData = selectedDate 
+    ? weather.hourly.filter(h => h.date === selectedDate)
+    : weather.hourly.slice(0, 8)
+
+  const chartData = filteredHourlyData.map(h => ({
     time: h.time,
     value: activeTab === 'temp' ? h.temp : activeTab === 'precip' ? h.precipitation : h.wind,
   }))
@@ -252,7 +261,8 @@ export default function WeatherNewDelhi() {
 
       {/* Trend Chart */}
       <div className="h-48 mb-6">
-        <ResponsiveContainer width="100%" height="100%">
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorTempDelhi" x1="0" y1="0" x2="0" y2="1">
@@ -298,27 +308,51 @@ export default function WeatherNewDelhi() {
             />
           </AreaChart>
         </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm">No hourly data available for this day</p>
+          </div>
+        )}
       </div>
 
       {/* 7-Day Forecast */}
       <div className="mt-6">
-        <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">7-Day Forecast</h4>
+        <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+          7-Day Forecast {selectedDay > 0 && <span className="text-xs font-normal text-neutral-600 dark:text-neutral-400">(Click to view hourly data)</span>}
+        </h4>
         <div className="grid grid-cols-7 gap-2">
           {weather.daily.slice(0, 7).map((day, idx) => (
             <div
               key={idx}
-              className="text-center p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              onClick={() => setSelectedDay(idx)}
+              className={`text-center p-2 rounded-lg transition-all cursor-pointer ${
+                selectedDay === idx
+                  ? 'bg-orange-500 dark:bg-orange-600 ring-2 ring-orange-400 dark:ring-orange-500'
+                  : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+              }`}
             >
-              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+              <p className={`text-xs font-medium mb-1 ${
+                selectedDay === idx
+                  ? 'text-white'
+                  : 'text-neutral-600 dark:text-neutral-400'
+              }`}>
                 {day.day}
               </p>
               <div className="flex justify-center mb-1">
                 {getWeatherIcon(day.icon, 'small')}
               </div>
-              <p className="text-xs font-semibold text-neutral-900 dark:text-white">
+              <p className={`text-xs font-semibold ${
+                selectedDay === idx
+                  ? 'text-white'
+                  : 'text-neutral-900 dark:text-white'
+              }`}>
                 {day.high}°
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-500">
+              <p className={`text-xs ${
+                selectedDay === idx
+                  ? 'text-orange-100'
+                  : 'text-neutral-500 dark:text-neutral-500'
+              }`}>
                 {day.low}°
               </p>
             </div>

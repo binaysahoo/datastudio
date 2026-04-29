@@ -16,6 +16,7 @@ interface WeatherData {
   }
   hourly: Array<{
     time: string
+    date: string
     temp: number
     precipitation: number
     wind: number
@@ -34,6 +35,7 @@ export default function WeatherOdisha() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'temp' | 'precip' | 'wind'>('temp')
+  const [selectedDay, setSelectedDay] = useState(0)
 
   useEffect(() => {
     async function fetchWeather() {
@@ -63,13 +65,14 @@ export default function WeatherOdisha() {
           return 'cloudy'
         }
         
-        // Process hourly data (next 72 hours, showing every 3 hours)
+        // Process hourly data (next 8 days, showing every 3 hours)
         const hourlyData = []
-        for (let i = 0; i < 72; i += 3) {
+        for (let i = 0; i < Math.min(192, data.hourly.time.length); i += 3) {
           if (i < data.hourly.time.length) {
             const time = new Date(data.hourly.time[i])
             hourlyData.push({
               time: time.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+              date: time.toISOString().split('T')[0],
               temp: Math.round(data.hourly.temperature_2m[i]),
               precipitation: data.hourly.precipitation[i] || 0,
               wind: Math.round(data.hourly.wind_speed_10m[i]),
@@ -143,7 +146,13 @@ export default function WeatherOdisha() {
 
   if (!weather) return null
 
-  const chartData = weather.hourly.map(h => ({
+  // Filter hourly data by selected day
+  const selectedDate = weather.daily[selectedDay]?.date
+  const filteredHourlyData = selectedDate 
+    ? weather.hourly.filter(h => h.date === selectedDate)
+    : weather.hourly.slice(0, 8)
+
+  const chartData = filteredHourlyData.map(h => ({
     time: h.time,
     value: activeTab === 'temp' ? h.temp : activeTab === 'precip' ? h.precipitation : h.wind,
   }))
@@ -233,7 +242,8 @@ export default function WeatherOdisha() {
 
       {/* Trend Chart */}
       <div className="h-48 mb-6">
-        <ResponsiveContainer width="100%" height="100%">
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorTempOdisha" x1="0" y1="0" x2="0" y2="1">
@@ -274,12 +284,17 @@ export default function WeatherOdisha() {
             />
           </AreaChart>
         </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-800 rounded-lg">
+            <p className="text-slate-600 dark:text-slate-400 text-sm">No hourly data available for this day</p>
+          </div>
+        )}
       </div>
 
       {/* 7-Day Forecast */}
       <div>
         <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
-          7-Day Forecast
+          7-Day Forecast {selectedDay > 0 && <span className="text-sm font-normal text-slate-600 dark:text-slate-400">(Click to view hourly data)</span>}
         </h4>
         <div className="grid grid-cols-7 gap-2">
           {weather.daily.slice(0, 7).map((day, idx) => (
@@ -288,18 +303,35 @@ export default function WeatherOdisha() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.05 }}
-              className="text-center p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setSelectedDay(idx)}
+              className={`text-center p-3 rounded-lg transition-all cursor-pointer ${
+                selectedDay === idx
+                  ? 'bg-blue-500 dark:bg-blue-600 ring-2 ring-blue-400 dark:ring-blue-500'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
             >
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+              <p className={`text-xs font-semibold mb-2 ${
+                selectedDay === idx
+                  ? 'text-white'
+                  : 'text-slate-600 dark:text-slate-400'
+              }`}>
                 {day.day}
               </p>
-              <div className="flex justi, 'small'fy-center mb-2">
-                {getWeatherIcon(day.icon)}
+              <div className="flex justify-center mb-2">
+                {getWeatherIcon(day.icon, 'small')}
               </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
+              <p className={`text-sm font-bold ${
+                selectedDay === idx
+                  ? 'text-white'
+                  : 'text-slate-900 dark:text-white'
+              }`}>
                 {day.high}°
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-500">
+              <p className={`text-xs ${
+                selectedDay === idx
+                  ? 'text-blue-100'
+                  : 'text-slate-500 dark:text-slate-500'
+              }`}>
                 {day.low}°
               </p>
             </motion.div>
