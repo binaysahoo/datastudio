@@ -4,10 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import Image from 'next/image'
-import WeatherBangalore from '@/components/WeatherBangalore'
-import WeatherOdisha from '@/components/WeatherOdisha'
-import WeatherHouston from '@/components/WeatherHouston'
-import WeatherNewDelhi from '@/components/WeatherNewDelhi'
+import WeatherCard from '@/components/WeatherCard'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
@@ -39,6 +36,77 @@ export default function Dashboard() {
     { symbol: 'NVDA', name: 'NVIDIA' },
     { symbol: 'AVGO', name: 'Broadcom' },
     { symbol: 'INTC', name: 'Intel' },
+  ]
+
+  const weatherLocations = [
+    {
+      location: {
+        name: 'Bangalore',
+        subname: 'Karnataka, India',
+        latitude: 12.9716,
+        longitude: 77.5946,
+        timezone: 'Asia/Kolkata',
+        tempUnit: 'C' as const,
+        windUnit: 'km/h' as const,
+      },
+      theme: {
+        bgGradient: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-neutral-800 dark:to-neutral-700',
+        tabColor: 'from-orange-500 to-red-500',
+        selectedDayColor: 'bg-blue-500 dark:bg-blue-600',
+        chartGradientId: 'Bangalore',
+      },
+    },
+    {
+      location: {
+        name: 'Odisha',
+        subname: 'India',
+        latitude: 20.9517,
+        longitude: 85.0985,
+        timezone: 'Asia/Kolkata',
+        tempUnit: 'C' as const,
+        windUnit: 'km/h' as const,
+      },
+      theme: {
+        bgGradient: 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-700',
+        tabColor: 'from-orange-500 to-red-500',
+        selectedDayColor: 'bg-blue-500 dark:bg-blue-600',
+        chartGradientId: 'Odisha',
+      },
+    },
+    {
+      location: {
+        name: 'Houston',
+        subname: 'Texas, USA',
+        latitude: 29.7604,
+        longitude: -95.3698,
+        timezone: 'America/Chicago',
+        tempUnit: 'F' as const,
+        windUnit: 'mph' as const,
+      },
+      theme: {
+        bgGradient: 'bg-gradient-to-br from-sky-50 to-blue-50 dark:from-neutral-800 dark:to-neutral-700',
+        tabColor: 'from-cyan-500 to-blue-500',
+        selectedDayColor: 'bg-blue-500 dark:bg-blue-600',
+        chartGradientId: 'Houston',
+      },
+    },
+    {
+      location: {
+        name: 'New Delhi',
+        subname: 'India',
+        latitude: 28.6139,
+        longitude: 77.2090,
+        timezone: 'Asia/Kolkata',
+        tempUnit: 'C' as const,
+        windUnit: 'km/h' as const,
+      },
+      theme: {
+        bgGradient: 'bg-gradient-to-br from-orange-50 to-red-50 dark:from-neutral-800 dark:to-neutral-700',
+        tabColor: 'from-orange-500 to-red-500',
+        selectedDayColor: 'bg-orange-500 dark:bg-orange-600',
+        chartGradientId: 'Delhi',
+      },
+    },
   ]
 
   return (
@@ -191,10 +259,13 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <WeatherBangalore />
-          <WeatherOdisha />
-          <WeatherHouston />
-          <WeatherNewDelhi />
+          {weatherLocations.map((config, index) => (
+            <WeatherCard
+              key={config.location.name}
+              location={config.location}
+              theme={config.theme}
+            />
+          ))}
         </div>
       </motion.section>
 
