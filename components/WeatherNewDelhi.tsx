@@ -30,7 +30,7 @@ interface WeatherData {
   }>
 }
 
-export default function WeatherOdisha() {
+export default function WeatherNewDelhi() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'temp' | 'precip' | 'wind'>('temp')
@@ -38,14 +38,13 @@ export default function WeatherOdisha() {
   useEffect(() => {
     async function fetchWeather() {
       try {
-        // Bhubaneswar, Odisha coordinates: 20.2961°N, 85.8245°E
+        // New Delhi coordinates: 28.6139°N, 77.2090°E
         const response = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=20.9517&longitude=85.0985&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,us_aqi&hourly=temperature_2m,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia/Kolkata&forecast_days=8'
+          'https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,us_aqi&hourly=temperature_2m,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia/Kolkata&forecast_days=8'
         )
         
         const data = await response.json()
         
-        // Map weather codes to conditions
         const getCondition = (code: number) => {
           if (code === 0) return 'Clear'
           if (code <= 3) return 'Partly Cloudy'
@@ -63,7 +62,6 @@ export default function WeatherOdisha() {
           return 'cloudy'
         }
         
-        // Process hourly data (next 72 hours, showing every 3 hours)
         const hourlyData = []
         for (let i = 0; i < 72; i += 3) {
           if (i < data.hourly.time.length) {
@@ -77,7 +75,6 @@ export default function WeatherOdisha() {
           }
         }
         
-        // Process daily data
         const dailyData = data.daily.time.map((date: string, idx: number) => {
           const d = new Date(date)
           return {
@@ -111,7 +108,7 @@ export default function WeatherOdisha() {
     }
     
     fetchWeather()
-    const interval = setInterval(fetchWeather, 10 * 60 * 1000) // Update every 10 minutes
+    const interval = setInterval(fetchWeather, 10 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -119,10 +116,10 @@ export default function WeatherOdisha() {
     const className = size === 'large' ? 'w-12 h-12' : 'w-8 h-8'
     switch (icon) {
       case 'sunny': return <Sun className={`${className} text-yellow-500`} />
-      case 'partly-cloudy': return <Cloud className={`${className} text-slate-500`} />
-      case 'cloudy': return <Cloud className={`${className} text-slate-600`} />
+      case 'partly-cloudy': return <Cloud className={`${className} text-neutral-500`} />
+      case 'cloudy': return <Cloud className={`${className} text-neutral-600`} />
       case 'rainy': return <CloudRain className={`${className} text-blue-500`} />
-      default: return <Cloud className={`${className} text-slate-500`} />
+      default: return <Cloud className={`${className} text-neutral-500`} />
     }
   }
 
@@ -134,8 +131,8 @@ export default function WeatherOdisha() {
         className="glass-card p-6"
       >
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-300 dark:bg-slate-700 rounded w-48 mb-4"></div>
-          <div className="h-32 bg-slate-300 dark:bg-slate-700 rounded"></div>
+          <div className="h-6 bg-neutral-300 dark:bg-neutral-700 rounded w-48 mb-4"></div>
+          <div className="h-32 bg-neutral-300 dark:bg-neutral-700 rounded"></div>
         </div>
       </motion.div>
     )
@@ -148,6 +145,20 @@ export default function WeatherOdisha() {
     value: activeTab === 'temp' ? h.temp : activeTab === 'precip' ? h.precipitation : h.wind,
   }))
 
+  const getAQIColor = (aqi: number) => {
+    if (aqi <= 50) return 'text-green-600 dark:text-green-500'
+    if (aqi <= 100) return 'text-yellow-600 dark:text-yellow-500'
+    if (aqi <= 150) return 'text-orange-600 dark:text-orange-500'
+    return 'text-red-600 dark:text-red-500'
+  }
+
+  const getAQILabel = (aqi: number) => {
+    if (aqi <= 50) return 'Good'
+    if (aqi <= 100) return 'Moderate'
+    if (aqi <= 150) return 'Unhealthy for Sensitive Groups'
+    return 'Unhealthy'
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -155,42 +166,50 @@ export default function WeatherOdisha() {
       className="glass-card p-6"
     >
       <div className="mb-6">
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-          Weather in Odisha
+        <h3 className="text-2xl font-bold gradient-text mb-1">
+          New Delhi
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Bhubaneswar, India</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">India</p>
       </div>
 
       {/* Current Weather */}
-      <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl">
+      <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-neutral-800 dark:to-neutral-700 rounded-xl">
         <div className="flex items-center gap-4">
           {getWeatherIcon(weather.daily[0].icon)}
           <div>
-            <p className="text-4xl font-bold text-slate-900 dark:text-white">
+            <p className="text-4xl font-bold text-neutral-900 dark:text-white">
               {weather.current.temp}°C
             </p>
-            <p className="text-slate-600 dark:text-slate-400">{weather.current.condition}</p>
+            <p className="text-neutral-600 dark:text-neutral-400">{weather.current.condition}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-2 text-sm">
           <div className="flex items-center gap-2">
             <Droplets className="w-4 h-4 text-blue-500" />
-            <span className="text-slate-600 dark:text-slate-400">
+            <span className="text-neutral-600 dark:text-neutral-400">
               Precipitation: {weather.current.precipitation}%
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Droplets className="w-4 h-4 text-cyan-500" />
-            <span className="text-slate-600 dark:text-slate-400">
+            <span className="text-neutral-600 dark:text-neutral-400">
               Humidity: {weather.current.humidity}%
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-slate-500" />
-            <span className="text-slate-600 dark:text-slate-400">
+            <Wind className="w-4 h-4 text-neutral-500" />
+            <span className="text-neutral-600 dark:text-neutral-400">
               Wind: {weather.current.windSpeed} km/h
             </span>
           </div>
+          {weather.current.aqi > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-green-500 to-red-500" />
+              <span className={`font-semibold ${getAQIColor(weather.current.aqi)}`}>
+                AQI: {weather.current.aqi} ({getAQILabel(weather.current.aqi)})
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -201,7 +220,7 @@ export default function WeatherOdisha() {
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
             activeTab === 'temp'
               ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
           }`}
         >
           <Thermometer className="w-4 h-4 inline mr-2" />
@@ -212,7 +231,7 @@ export default function WeatherOdisha() {
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
             activeTab === 'precip'
               ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
           }`}
         >
           <CloudDrizzle className="w-4 h-4 inline mr-2" />
@@ -222,8 +241,8 @@ export default function WeatherOdisha() {
           onClick={() => setActiveTab('wind')}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
             activeTab === 'wind'
-              ? 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              ? 'bg-gradient-to-r from-neutral-500 to-gray-500 text-white'
+              : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
           }`}
         >
           <Wind className="w-4 h-4 inline mr-2" />
@@ -236,73 +255,73 @@ export default function WeatherOdisha() {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="colorTempOdisha" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorTempDelhi" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="colorPrecipOdisha" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorPrecipDelhi" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="colorWindOdisha" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorWindDelhi" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#64748b" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
-            <XAxis 
-              dataKey="time" 
-              stroke="#94a3b8" 
-              fontSize={12}
-              interval="preserveStartEnd"
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-neutral-200 dark:text-neutral-800" opacity={0.3} />
+            <XAxis
+              dataKey="time"
+              stroke="currentColor"
+              className="text-neutral-500 dark:text-neutral-500"
+              style={{ fontSize: '10px' }}
+              interval={3}
             />
-            <YAxis stroke="#94a3b8" fontSize={12} />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                border: 'none', 
+            <YAxis
+              stroke="currentColor"
+              className="text-neutral-500 dark:text-neutral-500"
+              style={{ fontSize: '11px' }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid #e5e7eb',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                fontSize: '12px',
               }}
             />
             <Area
               type="monotone"
               dataKey="value"
               stroke={activeTab === 'temp' ? '#f59e0b' : activeTab === 'precip' ? '#3b82f6' : '#64748b'}
+              fill={`url(#color${activeTab === 'temp' ? 'Temp' : activeTab === 'precip' ? 'Precip' : 'Wind'}Delhi)`}
               strokeWidth={2}
-              fill={`url(#color${activeTab === 'temp' ? 'TempOdisha' : activeTab === 'precip' ? 'PrecipOdisha' : 'WindOdisha'})`}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* 7-Day Forecast */}
-      <div>
-        <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
-          7-Day Forecast
-        </h4>
+      <div className="mt-6">
+        <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">7-Day Forecast</h4>
         <div className="grid grid-cols-7 gap-2">
           {weather.daily.slice(0, 7).map((day, idx) => (
-            <motion.div
-              key={day.date}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              className="text-center p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            <div
+              key={idx}
+              className="text-center p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
                 {day.day}
               </p>
-              <div className="flex justi, 'small'fy-center mb-2">
-                {getWeatherIcon(day.icon)}
+              <div className="flex justify-center mb-1">
+                {getWeatherIcon(day.icon, 'small')}
               </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
+              <p className="text-xs font-semibold text-neutral-900 dark:text-white">
                 {day.high}°
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-500">
+              <p className="text-xs text-neutral-500 dark:text-neutral-500">
                 {day.low}°
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

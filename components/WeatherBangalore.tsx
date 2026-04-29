@@ -12,6 +12,7 @@ interface WeatherData {
     humidity: number
     windSpeed: number
     condition: string
+    aqi: number
   }
   hourly: Array<{
     time: string
@@ -39,7 +40,7 @@ export default function WeatherBangalore() {
       try {
         // Bangalore coordinates: 12.9716°N, 77.5946°E
         const response = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=12.9716&longitude=77.5946&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia/Kolkata&forecast_days=8'
+          'https://api.open-meteo.com/v1/forecast?latitude=12.9716&longitude=77.5946&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,us_aqi&hourly=temperature_2m,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia/Kolkata&forecast_days=8'
         )
         
         const data = await response.json()
@@ -96,6 +97,7 @@ export default function WeatherBangalore() {
             humidity: data.current.relative_humidity_2m,
             windSpeed: Math.round(data.current.wind_speed_10m),
             condition: getCondition(data.current.weather_code),
+            aqi: data.current.us_aqi || 0,
           },
           hourly: hourlyData,
           daily: dailyData,

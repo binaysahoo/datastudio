@@ -5,8 +5,6 @@ import { motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import WeatherBangalore from '@/components/WeatherBangalore'
 import WeatherOdisha from '@/components/WeatherOdisha'
-import WeatherHouston from '@/components/WeatherHouston'
-import WeatherNewDelhi from '@/components/WeatherNewDelhi'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
@@ -129,25 +127,15 @@ export default function Dashboard() {
         </div>
         <YouTubeVideos />
       </motion.section>
-      {/* AI/ML Analytics Section */}
+
+      {/* Social Media Section */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.5 }}
         className="mb-12"
       >
-        <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2 tracking-tight">
-            AI & Machine Learning Analytics
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-            Real-time insights into LLM usage and API performance
-          </p>
-        </div>
-        <div className="space-y-4">
-          <LLMBubbleChart />
-          <APIUsageChart />
-        </div>
+        <SocialMedia />
       </motion.section>
 
       {/* Weather Section */}
@@ -168,8 +156,6 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <WeatherBangalore />
           <WeatherOdisha />
-          <WeatherHouston />
-          <WeatherNewDelhi />
         </div>
       </motion.section>
 
@@ -191,14 +177,25 @@ export default function Dashboard() {
         <MyPerks />
       </motion.section>
 
-      {/* Social Media Section */}
+      {/* AI/ML Analytics Section */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45, duration: 0.5 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
         className="mb-12"
       >
-        <SocialMedia />
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2 tracking-tight">
+            AI & Machine Learning Analytics
+          </h2>
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+            Real-time insights into LLM usage and API performance
+          </p>
+        </div>
+        <div className="space-y-4">
+          <LLMBubbleChart />
+          <APIUsageChart />
+        </div>
       </motion.section>
 
       {/* Footer */}

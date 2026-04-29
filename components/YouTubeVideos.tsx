@@ -17,7 +17,7 @@ const videos: Video[] = [
 
 export default function YouTubeVideos() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {videos.map((video, index) => (
         <motion.a
           key={video.id}
@@ -26,32 +26,36 @@ export default function YouTubeVideos() {
           rel="noopener noreferrer"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="group relative glass-card overflow-hidden rounded-xl hover:scale-105 transition-transform duration-300"
+          transition={{ 
+            delay: index * 0.1,
+            duration: 0.5,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+          whileHover={{ y: -4 }}
+          className="group relative glass-card overflow-hidden"
         >
           {/* Thumbnail */}
-          <div className="relative aspect-video bg-slate-200 dark:bg-slate-800">
+          <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-900">
             <img
               src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
               alt={video.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
-                // Fallback to medium quality thumbnail if maxres doesn't exist
                 e.currentTarget.src = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`
               }}
             />
             
             {/* Play button overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
-              <div className="bg-red-600 rounded-full p-4 group-hover:scale-110 transition-transform">
-                <Play className="w-8 h-8 text-white fill-white" />
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="bg-red-600 rounded-full p-3 transform scale-90 group-hover:scale-100 transition-transform duration-300 shadow-xl">
+                <Play className="w-6 h-6 text-white fill-white" />
               </div>
             </div>
           </div>
 
-          {/* Duration badge (optional - you can customize) */}
-          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-            Watch
+          {/* Hover effect badge */}
+          <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            Watch now
           </div>
         </motion.a>
       ))}
