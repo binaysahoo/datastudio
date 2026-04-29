@@ -19,9 +19,11 @@ interface StockCardProps {
   symbol: string
   name: string
   index: number
+  isSelected?: boolean
+  onClick?: () => void
 }
 
-export default function StockCard({ symbol, name, index }: StockCardProps) {
+export default function StockCard({ symbol, name, index, isSelected = false, onClick }: StockCardProps) {
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -174,7 +176,10 @@ export default function StockCard({ symbol, name, index }: StockCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="glass-card p-6 hover:scale-105 transition-transform"
+      onClick={onClick}
+      className={`glass-card p-6 hover:scale-105 transition-all cursor-pointer ${
+        isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400 shadow-lg shadow-blue-500/20' : ''
+      }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">

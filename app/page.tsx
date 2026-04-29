@@ -8,6 +8,7 @@ import WeatherCard from '@/components/WeatherCard'
 import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
+import StockTrendChart from '@/components/StockTrendChart'
 import MyPerks from '@/components/MyPerks'
 import YouTubeVideos from '@/components/YouTubeVideos'
 import SocialMedia from '@/components/SocialMedia'
@@ -15,6 +16,7 @@ import Hero from '@/components/Hero'
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
+  const [selectedStock, setSelectedStock] = useState('SNPS')
 
   useEffect(() => {
     // Apply dark mode on initial load
@@ -177,9 +179,19 @@ export default function Dashboard() {
                 symbol={stock.symbol}
                 name={stock.name}
                 index={index}
+                isSelected={selectedStock === stock.symbol}
+                onClick={() => setSelectedStock(stock.symbol)}
               />
             </motion.div>
           ))}
+        </div>
+
+        {/* Stock Trend Chart */}
+        <div className="mt-8">
+          <StockTrendChart
+            symbol={selectedStock}
+            name={stocks.find(s => s.symbol === selectedStock)?.name || selectedStock}
+          />
         </div>
       </motion.section>
 
