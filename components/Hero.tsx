@@ -66,7 +66,7 @@ export default function Hero() {
               </div>
               <div>
                 <p className="text-sm text-neutral-400">Live Market Data</p>
-                <p className="text-lg font-semibold text-white">5 Stocks Tracked</p>
+                <p className="text-lg font-semibold text-white">6 Stocks Tracked</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
