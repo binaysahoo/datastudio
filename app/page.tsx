@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
+import Image from 'next/image'
 import WeatherBangalore from '@/components/WeatherBangalore'
 import WeatherOdisha from '@/components/WeatherOdisha'
 import WeatherHouston from '@/components/WeatherHouston'
@@ -13,9 +14,15 @@ import StockCard from '@/components/StockCard'
 import MyPerks from '@/components/MyPerks'
 import YouTubeVideos from '@/components/YouTubeVideos'
 import SocialMedia from '@/components/SocialMedia'
+import Hero from '@/components/Hero'
 
 export default function Dashboard() {
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
+
+  useEffect(() => {
+    // Apply dark mode on initial load
+    document.documentElement.classList.add('dark')
+  }, [])
 
   useEffect(() => {
     if (darkMode) {
@@ -65,6 +72,9 @@ export default function Dashboard() {
           </motion.button>
         </div>
       </motion.header>
+
+      {/* Hero Section */}
+      <Hero />
 
       {/* Stock Prices Section */}
       <motion.section
@@ -134,19 +144,33 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.5 }}
-        className="mb-12"
+        className="mb-12 relative overflow-hidden rounded-2xl"
       >
-        <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2 tracking-tight">
-            AI & Machine Learning Analytics
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-            Real-time insights into LLM usage and API performance
-          </p>
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/ai-analytics-bg.png"
+            alt="AI Analytics Background"
+            fill
+            className="object-cover opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white dark:via-black/50 dark:to-black" />
         </div>
-        <div className="space-y-4">
-          <LLMBubbleChart />
-          <APIUsageChart />
+
+        {/* Content */}
+        <div className="relative z-10 p-8">
+          <div className="mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2 tracking-tight">
+              AI & Machine Learning Analytics
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+              Real-time insights into LLM usage and API performance
+            </p>
+          </div>
+          <div className="space-y-4">
+            <LLMBubbleChart />
+            <APIUsageChart />
+          </div>
         </div>
       </motion.section>
 
