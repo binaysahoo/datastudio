@@ -9,6 +9,8 @@ import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
 import MyPerks from '@/components/MyPerks'
+import YouTubeVideos from '@/components/YouTubeVideos'
+import SocialMedia from '@/components/SocialMedia'
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false)
@@ -79,6 +81,33 @@ export default function Dashboard() {
             index={index}
           />
         ))}
+      </div>
+
+      {/* YouTube Videos Section */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold gradient-text mb-2">
+          🎥 Latest Videos
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          Check out our latest content on YouTube • Subscribe to{' '}
+          <a 
+            href="https://www.youtube.com/@datastudioz" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-red-600 hover:text-red-700 font-semibold"
+          >
+            @datastudioz
+          </a>
+        </p>
+      </div>
+
+      <div className="mb-8">
+        <YouTubeVideos />
+      </div>
+
+      {/* Social Media Section */}
+      <div className="mb-8">
+        <SocialMedia />
       </div>
 
       {/* Weather Section */}
