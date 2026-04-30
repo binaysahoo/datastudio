@@ -31,8 +31,8 @@ export default function StockTrendChart({ symbol, name }: StockTrendChartProps) 
         let outputsize: number
         
         if (timeRange === '1D') {
-          interval = '15min' // 15-minute intervals for 1 day
-          outputsize = 96 // 24 hours * 4 per hour
+          interval = '15min' // 15-minute intervals for intraday
+          outputsize = 30 // ~7.5 hours of data (covers one trading day: 9:30 AM - 4:00 PM ET = 6.5 hours = 26 intervals)
         } else if (timeRange === '1W') {
           interval = '1h' // Hourly for 1 week
           outputsize = 168 // 7 days * 24 hours
@@ -50,15 +50,27 @@ export default function StockTrendChart({ symbol, name }: StockTrendChartProps) 
           outputsize = 365
         }
         
+        // Use API key from build-time environment variable (GitHub Secret)
+        const TWELVE_DATA_API_KEY = process.env.NEXT_PUBLIC_TWELVE_DATA_API_KEY
+        
+        if (!TWELVE_DATA_API_KEY) {
+          throw new Error('Twelve Data API key not configured')
+        }
+        
         const response = await fetch(
-          `/api/stock-history?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}`
+          `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVE_DATA_API_KEY}`
         )
         
         if (!response.ok) throw new Error('Failed to fetch')
         
         const data = await response.json()
         
-        if (data.status === 'success' && data.values && Array.isArray(data.values)) {
+        // Check if API returned error (e.g., invalid symbol, rate limit)
+        if (data.status === 'error') {
+          throw new Error(data.message || 'API returned error')
+        }
+        
+        if (data.values && Array.isArray(data.values)) {
           // Twelve Data returns values in reverse chronological order (newest first)
           // We need to reverse it for chart display (oldest to newest)
           const chartData: HistoricalData[] = data.values

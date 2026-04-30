@@ -80,12 +80,21 @@ export default function MyPerks() {
   useEffect(() => {
     async function fetchSNPSPrice() {
       try {
-        const response = await fetch('/api/stock-price?symbol=SNPS')
+        // Use API key from build-time environment variable (GitHub Secret)
+        const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
+        
+        if (!FINNHUB_API_KEY) {
+          throw new Error('Finnhub API key not configured')
+        }
+        
+        const response = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=SNPS&token=${FINNHUB_API_KEY}`
+        )
         
         if (response.ok) {
           const data = await response.json()
-          if (data.status === 'success' && data.price > 0) {
-            setLivePrice(data.price)
+          if (data.c && data.c > 0) {
+            setLivePrice(data.c)
             setStockPriceStatus('success')
           } else {
             setStockPriceStatus('error')
@@ -107,14 +116,15 @@ export default function MyPerks() {
   useEffect(() => {
     async function fetchUSDToINR() {
       try {
-        const response = await fetch('/api/exchange-rate')
+        // Use free exchangerate-api.com (no API key needed)
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
         
         if (response.ok) {
           const data = await response.json()
-          if (data.rate && data.rate > 0) {
-            setUsdToInr(data.rate)
-            setLastUpdated(data.lastUpdated)
-            setExchangeRateStatus(data.status === 'error' ? 'error' : 'success')
+          if (data.rates && data.rates.INR && data.rates.INR > 0) {
+            setUsdToInr(data.rates.INR)
+            setLastUpdated(new Date().toISOString())
+            setExchangeRateStatus('success')
           } else {
             setExchangeRateStatus('error')
           }
@@ -128,7 +138,7 @@ export default function MyPerks() {
     }
     
     fetchUSDToINR()
-    // Fetch every hour instead of every 15 seconds (server caches for 1 hour)
+    // Fetch every hour instead of every 15 seconds (exchange rates don't change that frequently)
     const interval = setInterval(fetchUSDToINR, 60 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
