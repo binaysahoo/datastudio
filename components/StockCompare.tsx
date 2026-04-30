@@ -31,6 +31,7 @@ export default function StockCompare({ initialSymbols, availableStocks }: StockC
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<'1D' | '1W' | '1M' | '3M' | '6M' | '1Y'>('1D')
   const [showAddStock, setShowAddStock] = useState(false)
+  const [scaleType, setScaleType] = useState<'linear' | 'ln' | 'log10'>('linear')
 
   useEffect(() => {
     async function fetchAllStocksData() {
@@ -211,21 +212,55 @@ export default function StockCompare({ initialSymbols, availableStocks }: StockC
         </motion.div>
       )}
 
-      {/* Time range buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {timeRanges.map(range => (
+      {/* Time range buttons and scale toggle */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <div className="flex flex-wrap gap-2">
+          {timeRanges.map(range => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                timeRange === range
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {range}
+            </button>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
           <button
-            key={range}
-            onClick={() => setTimeRange(range)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              timeRange === range
-                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            onClick={() => setScaleType('linear')}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              scaleType === 'linear'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            {range}
+            Linear
           </button>
-        ))}
+          <button
+            onClick={() => setScaleType('ln')}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              scaleType === 'ln'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Ln
+          </button>
+          <button
+            onClick={() => setScaleType('log10')}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              scaleType === 'log10'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            Log₁₀
+          </button>
+        </div>
       </div>
 
       {/* Chart */}
@@ -249,8 +284,9 @@ export default function StockCompare({ initialSymbols, availableStocks }: StockC
               <YAxis 
                 stroke="#94a3b8" 
                 fontSize={12}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `$${Math.round(value)}`}
                 domain={['auto', 'auto']}
+                scale={scaleType === 'linear' ? 'auto' : 'log'}
               />
               <Tooltip
                 contentStyle={{
@@ -284,7 +320,7 @@ export default function StockCompare({ initialSymbols, availableStocks }: StockC
 
       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          💡 Compare up to 6 stocks side-by-side. Click &quot;Compare&quot; to add more stocks.
+          💡 Compare up to 6 stocks side-by-side. Use <strong>Ln (natural log)</strong> or <strong>Log₁₀</strong> to better compare stocks with different price ranges (e.g., SNPS vs INTC) - logarithmic scales show percentage changes equally.
         </p>
       </div>
     </motion.div>
