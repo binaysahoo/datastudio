@@ -9,6 +9,7 @@ import LLMBubbleChart from '@/components/LLMBubbleChart'
 import APIUsageChart from '@/components/APIUsageChart'
 import StockCard from '@/components/StockCard'
 import StockTrendChart from '@/components/StockTrendChart'
+import StockCompare from '@/components/StockCompare'
 import MyPerks from '@/components/MyPerks'
 import YouTubeVideos from '@/components/YouTubeVideos'
 import SocialMedia from '@/components/SocialMedia'
@@ -191,6 +192,14 @@ export default function Dashboard() {
           <StockTrendChart
             symbol={selectedStock}
             name={stocks.find(s => s.symbol === selectedStock)?.name || selectedStock}
+          />
+        </div>
+
+        {/* Multi-Stock Comparison Chart */}
+        <div className="mt-8">
+          <StockCompare
+            initialSymbols={[selectedStock]}
+            availableStocks={stocks}
           />
         </div>
       </motion.section>

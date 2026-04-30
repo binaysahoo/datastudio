@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     }
     
     // Fetch from Twelve Data API
-    const apiKey = process.env.TWELVE_DATA_API_KEY
+    const apiKey = process.env.NEXT_PUBLIC_TWELVE_DATA_API_KEY || process.env.TWELVE_DATA_API_KEY
     
     if (!apiKey) {
       return NextResponse.json(

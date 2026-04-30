@@ -20,7 +20,7 @@ interface HistoricalData {
 export default function StockTrendChart({ symbol, name }: StockTrendChartProps) {
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
   const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState<'1D' | '1W' | '1M' | '3M' | '6M' | '1Y'>('3M')
+  const [timeRange, setTimeRange] = useState<'1D' | '1W' | '1M' | '3M' | '6M' | '1Y'>('1D')
 
   useEffect(() => {
     async function fetchHistoricalData() {
@@ -32,7 +32,7 @@ export default function StockTrendChart({ symbol, name }: StockTrendChartProps) 
         
         if (timeRange === '1D') {
           interval = '15min' // 15-minute intervals for intraday
-          outputsize = 30 // ~7.5 hours of data (covers one trading day: 9:30 AM - 4:00 PM ET = 6.5 hours = 26 intervals)
+          outputsize = 50 // Request extra data to ensure we capture from market open (9:30 AM ET) regardless of current time
         } else if (timeRange === '1W') {
           interval = '1h' // Hourly for 1 week
           outputsize = 168 // 7 days * 24 hours
