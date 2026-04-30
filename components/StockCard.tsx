@@ -33,19 +33,8 @@ export default function StockCard({ symbol, name, index, isSelected = false, onC
   useEffect(() => {
     async function fetchStockData() {
       try {
-        // Try Finnhub API first (supports CORS, free tier available)
-        // Get free API key from: https://finnhub.io/register
-        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
-        
-        const response = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`,
-          {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-          }
-        )
+        // Use server-side API route (hides API key, bypasses CORS)
+        const response = await fetch(`/api/stock-price?symbol=${symbol}`)
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -53,18 +42,14 @@ export default function StockCard({ symbol, name, index, isSelected = false, onC
 
         const data = await response.json()
         
-        // Finnhub response: { c: current, pc: previous close, d: change, dp: change percent }
-        if (data.c && data.c > 0) {
-          const currentPrice = data.c
-          const change = data.d || 0
-          const changePercent = data.dp || 0
-
+        // Server API response: { status: 'success', symbol, price, change, changePercent, ... }
+        if (data.status === 'success' && data.price > 0) {
           setStockData({
             symbol: symbol,
             name: name,
-            price: currentPrice,
-            change: change,
-            changePercent: changePercent,
+            price: data.price,
+            change: data.change || 0,
+            changePercent: data.changePercent || 0,
             currency: 'USD',
             isLive: true,
           })
@@ -74,8 +59,8 @@ export default function StockCard({ symbol, name, index, isSelected = false, onC
           return // Success, exit function
         }
         
-        // If Finnhub fails, throw to use fallback
-        throw new Error('Invalid Finnhub response')
+        // If API fails, throw to use fallback
+        throw new Error('Invalid API response')
       } catch (err) {
         console.error(`Error fetching ${symbol}:`, err)
         

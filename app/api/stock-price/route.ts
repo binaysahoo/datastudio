@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server'
 
 // In-memory cache for stock prices
-const priceCache: Record<string, { price: number; timestamp: number }> = {}
+interface CachedQuote {
+  price: number
+  previousClose: number
+  change: number
+  changePercent: number
+  high?: number
+  low?: number
+  open?: number
+  timestamp: number
+}
+
+const priceCache: Record<string, CachedQuote> = {}
 const CACHE_DURATION = 15 * 1000 // 15 seconds in milliseconds
 
 export async function GET(request: Request) {
@@ -20,11 +31,18 @@ export async function GET(request: Request) {
     
     // Return cached price if still valid
     if (priceCache[symbol] && (now - priceCache[symbol].timestamp) < CACHE_DURATION) {
+      const cached = priceCache[symbol]
       return NextResponse.json({
         status: 'success',
         symbol,
-        price: priceCache[symbol].price,
-        lastUpdated: new Date(priceCache[symbol].timestamp).toISOString(),
+        price: cached.price,
+        previousClose: cached.previousClose,
+        change: cached.change,
+        changePercent: cached.changePercent,
+        high: cached.high,
+        low: cached.low,
+        open: cached.open,
+        lastUpdated: new Date(cached.timestamp).toISOString(),
         cached: true
       })
     }
@@ -50,17 +68,31 @@ export async function GET(request: Request) {
     
     const data = await response.json()
     
-    // Finnhub quote API returns: { c: currentPrice, ... }
+    // Finnhub quote API returns: { c: current, pc: previous close, d: change, dp: change percent, h: high, l: low, o: open }
     if (data.c && data.c > 0) {
-      priceCache[symbol] = {
+      const quoteData = {
         price: data.c,
+        previousClose: data.pc || data.c,
+        change: data.d || 0,
+        changePercent: data.dp || 0,
+        high: data.h,
+        low: data.l,
+        open: data.o,
         timestamp: now
       }
+      
+      priceCache[symbol] = quoteData
       
       return NextResponse.json({
         status: 'success',
         symbol,
-        price: data.c,
+        price: quoteData.price,
+        previousClose: quoteData.previousClose,
+        change: quoteData.change,
+        changePercent: quoteData.changePercent,
+        high: quoteData.high,
+        low: quoteData.low,
+        open: quoteData.open,
         lastUpdated: new Date(now).toISOString(),
         cached: false
       })

@@ -26,61 +26,70 @@ export default function StockTrendChart({ symbol, name }: StockTrendChartProps) 
     async function fetchHistoricalData() {
       setLoading(true)
       try {
-        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
-        
-        // Calculate date range and resolution based on selection
-        const endDate = Math.floor(Date.now() / 1000)
-        let daysBack: number
-        let resolution: string
+        // Map timeRange to Twelve Data intervals and output size
+        let interval: string
+        let outputsize: number
         
         if (timeRange === '1D') {
-          daysBack = 1
-          resolution = '15' // 15-minute intervals for 1 day
+          interval = '15min' // 15-minute intervals for 1 day
+          outputsize = 96 // 24 hours * 4 per hour
         } else if (timeRange === '1W') {
-          daysBack = 7
-          resolution = '60' // Hourly for 1 week
+          interval = '1h' // Hourly for 1 week
+          outputsize = 168 // 7 days * 24 hours
+        } else if (timeRange === '1M') {
+          interval = '1day' // Daily for 1 month
+          outputsize = 30
+        } else if (timeRange === '3M') {
+          interval = '1day' // Daily for 3 months
+          outputsize = 90
+        } else if (timeRange === '6M') {
+          interval = '1day' // Daily for 6 months
+          outputsize = 180
         } else {
-          // 1M, 3M, 6M, 1Y use daily resolution
-          daysBack = timeRange === '1M' ? 30 : timeRange === '3M' ? 90 : timeRange === '6M' ? 180 : 365
-          resolution = 'D'
+          interval = '1day' // Daily for 1 year
+          outputsize = 365
         }
         
-        const startDate = endDate - (daysBack * 24 * 60 * 60)
-        
         const response = await fetch(
-          `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${startDate}&to=${endDate}&token=${FINNHUB_API_KEY}`
+          `/api/stock-history?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}`
         )
         
         if (!response.ok) throw new Error('Failed to fetch')
         
         const data = await response.json()
         
-        if (data.s === 'ok' && data.c && data.t) {
-          const chartData: HistoricalData[] = data.t.map((timestamp: number, index: number) => {
-            const date = new Date(timestamp * 1000)
-            let displayDate: string
-            
-            if (timeRange === '1D') {
-              // Show time for 1 day view
-              displayDate = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-            } else if (timeRange === '1W') {
-              // Show day and time for 1 week view
-              displayDate = date.toLocaleDateString('en-US', { weekday: 'short', hour: 'numeric' })
-            } else {
-              // Show date for longer ranges
-              displayDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            }
-            
-            return {
-              date: date.toISOString().split('T')[0],
-              price: data.c[index],
-              displayDate,
-              timestamp: date.getTime() // Store full timestamp for accurate matching
-            }
-          })
+        if (data.status === 'success' && data.values && Array.isArray(data.values)) {
+          // Twelve Data returns values in reverse chronological order (newest first)
+          // We need to reverse it for chart display (oldest to newest)
+          const chartData: HistoricalData[] = data.values
+            .reverse()
+            .map((item: any) => {
+              const date = new Date(item.datetime)
+              let displayDate: string
+              
+              if (timeRange === '1D') {
+                // Show time for 1 day view
+                displayDate = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+              } else if (timeRange === '1W') {
+                // Show day and time for 1 week view
+                displayDate = date.toLocaleDateString('en-US', { weekday: 'short', hour: 'numeric' })
+              } else {
+                // Show date for longer ranges
+                displayDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              }
+              
+              return {
+                date: date.toISOString().split('T')[0],
+                price: parseFloat(item.close),
+                displayDate,
+                timestamp: date.getTime()
+              }
+            })
           setHistoricalData(chartData)
         } else {
-          // Fallback to mock data
+          // Fallback to mock data if API returns error
+          const daysBack = timeRange === '1D' ? 1 : timeRange === '1W' ? 7 : timeRange === '1M' ? 30 : timeRange === '3M' ? 90 : timeRange === '6M' ? 180 : 365
+          const resolution = timeRange === '1D' ? '15' : timeRange === '1W' ? '60' : 'D'
           generateMockData(daysBack, resolution)
         }
       } catch (error) {
