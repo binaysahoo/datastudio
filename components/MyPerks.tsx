@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, IndianRupee, Package } from 'lucide-react'
+import { TrendingUp, TrendingDown, IndianRupee, Package, AlertTriangle } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 // Constants
@@ -73,23 +73,29 @@ export default function MyPerks() {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
   const [livePrice, setLivePrice] = useState<number>(482.35)
   const [usdToInr, setUsdToInr] = useState<number>(94.62)
+  const [exchangeRateStatus, setExchangeRateStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [stockPriceStatus, setStockPriceStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [lastUpdated, setLastUpdated] = useState<string>('')
   
   useEffect(() => {
     async function fetchSNPSPrice() {
       try {
-        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
-        const response = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=SNPS&token=${FINNHUB_API_KEY}`
-        )
+        const response = await fetch('/api/stock-price?symbol=SNPS')
         
         if (response.ok) {
           const data = await response.json()
-          if (data.c && data.c > 0) {
-            setLivePrice(data.c)
+          if (data.status === 'success' && data.price > 0) {
+            setLivePrice(data.price)
+            setStockPriceStatus('success')
+          } else {
+            setStockPriceStatus('error')
           }
+        } else {
+          setStockPriceStatus('error')
         }
       } catch (error) {
         console.error('Failed to fetch SNPS price:', error)
+        setStockPriceStatus('error')
       }
     }
     
@@ -101,24 +107,29 @@ export default function MyPerks() {
   useEffect(() => {
     async function fetchUSDToINR() {
       try {
-        const FINNHUB_API_KEY = 'd7oe9a9r01qsb7bejn3gd7oe9a9r01qsb7bejn40'
-        const response = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=OANDA:USD_INR&token=${FINNHUB_API_KEY}`
-        )
+        const response = await fetch('/api/exchange-rate')
         
         if (response.ok) {
           const data = await response.json()
-          if (data.c && data.c > 0) {
-            setUsdToInr(data.c)
+          if (data.rate && data.rate > 0) {
+            setUsdToInr(data.rate)
+            setLastUpdated(data.lastUpdated)
+            setExchangeRateStatus(data.status === 'error' ? 'error' : 'success')
+          } else {
+            setExchangeRateStatus('error')
           }
+        } else {
+          setExchangeRateStatus('error')
         }
       } catch (error) {
         console.error('Failed to fetch USD to INR rate:', error)
+        setExchangeRateStatus('error')
       }
     }
     
     fetchUSDToINR()
-    const interval = setInterval(fetchUSDToINR, 15 * 1000)
+    // Fetch every hour instead of every 15 seconds (server caches for 1 hour)
+    const interval = setInterval(fetchUSDToINR, 60 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
   
@@ -135,6 +146,16 @@ export default function MyPerks() {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-6"
     >
+      {/* Warning Banner */}
+      {exchangeRateStatus === 'error' && (
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Unable to fetch live exchange rate. Using fallback value.
+          </p>
+        </div>
+      )}
+      
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           💎 SNPS Share Calculator
@@ -152,6 +173,9 @@ export default function MyPerks() {
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">
             {BASELINE_RSU} @ ${BASELINE_PRICE}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 italic">
+            Sold & invested in land. Tracking virtual gain/loss.
           </p>
         </div>
 
@@ -207,6 +231,15 @@ export default function MyPerks() {
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             @ ₹{usdToInr.toFixed(2)} per USD
           </p>
+          {lastUpdated && exchangeRateStatus === 'success' && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              Updated: {new Date(lastUpdated).toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+              })}
+            </p>
+          )}
         </div>
       </div>
 
