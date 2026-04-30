@@ -284,7 +284,7 @@ export default function StockCompare({ initialSymbols, availableStocks }: StockC
 
       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          💡 Compare up to 6 stocks side-by-side. Click "Compare" to add more stocks.
+          💡 Compare up to 6 stocks side-by-side. Click &quot;Compare&quot; to add more stocks.
         </p>
       </div>
     </motion.div>
