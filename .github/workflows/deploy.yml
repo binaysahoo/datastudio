@@ -42,9 +42,10 @@ jobs:
       - name: Add .nojekyll file
         run: touch ./out/.nojekyll
       
-      - name: Add CNAME
-        run: echo 'raglab.site' > ./out/CNAME
-      
+      # Re-enable when raglab.site DNS works: uncomment below, and in GitHub Settings → Pages add custom domain raglab.site.
+      # - name: Add CNAME
+      #   run: echo 'raglab.site' > ./out/CNAME
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

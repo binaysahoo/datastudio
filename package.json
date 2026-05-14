@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "export": "next build && next export",
-    "deploy": "next build && touch out/.nojekyll && echo 'raglab.site' > out/CNAME"
+    "deploy": "next build && touch out/.nojekyll",
+    "deploy:raglab-site": "next build && touch out/.nojekyll && echo 'raglab.site' > out/CNAME"
   },
   "dependencies": {
     "react": "^18.3.1",
